@@ -8,16 +8,10 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceRoot}\\scrape.js",
+            "program": "${workspaceRoot}/scrape.js",
             "cwd": "${workspaceRoot}",
-            "outFiles": []
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Process",
-            "port": 5858,
-            "outFiles": []
+            "outFiles": [],
+            "preLaunchTask": "tsc: build - tsconfig.json"
         }
     ]
 }

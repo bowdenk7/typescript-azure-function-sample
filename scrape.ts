@@ -1,72 +1,57 @@
-var request = require('request');
-var cheerio = require('cheerio');
+import * as request from 'request';
+import * as cheerio from 'cheerio';
 
-class DailyInstall {
-    date: string;
-    windows: number;
-    linux: number;
-    osx: number;
 
-    constructor(date: string, windows?: number, linux?: number, osx?: number) {
-        this.date = date;
-        this.windows = windows;
-        this.linux = linux;
-        this.osx = osx;
-    }
-
-    getTotalDownloads():number {
-        return this.windows + this.linux + this.osx;
-    }
-
-    getDownloadString(): string {
-        return this.date + ": " + this.getTotalDownloads();
-    }
+interface Line {
+    name: string,
+    awayLine: number,
+    awayOdds: number,
+    homeline: number,
+    homeOdds: number
 }
 
-var installData: (undefined | DailyInstall)[] = [];
+class Game {
+    constructor(
+        public homeTeam: string, 
+        public awayTeam: string, 
+        public homeScore: number, 
+        public awayScore: number, 
+        public lines: Line[]
+    ) {}
+}
 
-var url = 'https://packagecontrol.io/packages/TypeScript';
+var url = 'http://www.donbest.com/nfl/odds/spreads/20171119.html';
 
 request(url, function (err, resp, body) {
     if (err) { throw err; }
     let $ = cheerio.load(body);
-    //<div id="daily_installs"> <table cellspacing="0"> <tr class="dates"> <td class="none"></td>
-    $('#daily_installs th').each(function () {
+    let games = [];
+    $('tr').each(function() {
         const data = $(this).text();
-        if (data != "Windows" && data != "OS X" && data != "Linux") {
-            installData.push(new DailyInstall(data));
+        
+        if ($(this)[0].children[2] && !($(this)[0].children[2].children[0].data == "Team")) { //ghetto way of detecting that our row is not a header
+            const awayTeam = $(this)[0].children[2].children[0].children[0].children[0].children[0].data;
+            const homeTeam = $(this)[0].children[2].children[0].children[2].children[0].children[0].data;
+
+            const awayScore = parseFloat($(this)[0].children[4].children[0].children[0].children[0].data);
+            const homeScore = parseFloat($(this)[0].children[4].children[1].children[0].children[0].data);
+
+            const lineNames = ["Westgate", "Mirage", "Station", "Pinnacle", "SIA", "SBG", "BetUS", "BetPhoenix",
+                "EasyStreet", "Bovada", "Jazz", "Sportsbet", "BookMaker", "DSI", "AceSport"];
+            let lines: Line[] = [];
+            for (let i = 0; i < lineNames.length; i++) {
+                let lineData: Line = {
+                    name: lineNames[i],
+                    awayLine: parseFloat($(this)[0].children[6 + i].children[0].children[0].data.split("\n")[0]),
+                    awayOdds: parseFloat($(this)[0].children[6 + i].children[0].children[0].data.split("\n")[1].trim()),
+                    homeline: parseFloat($(this)[0].children[6 + i].children[1].children[0].data.split("\n")[0]),
+                    homeOdds: parseFloat($(this)[0].children[6 + i].children[1].children[0].data.split("\n")[1].trim())
+                }
+
+                lines.push(lineData);
+            }
+            games.push(new Game(homeTeam, awayTeam, homeScore, awayScore, lines));
         }
     });
-    
-    let results: string[] = [];
-    $('#daily_installs td').each(function () {
-        let string = $(this).text();
-        if (string) { // first string is empty, so don't push that
-            results.push(string);
-        }
-    });
-
-    const length = installData.length;
-    let count = 0;
-    for (let x of results) {
-        if (count < results.length / 3) {
-            installData[count % (results.length /3)].windows = +x;
-        } else if (count < (results.length * 2) / 3) {
-            installData[count % (results.length /3)].osx = +x;
-        } else {
-            installData[count % (results.length /3)].linux = +x;
-        }
-        count++;
-    }
-
-     $('#installs ul.totals li span.installs').each(function () {
-        let uniqueDownloads = $(this)[0].attribs["title"];
-        console.log("Total unique downloads: " + uniqueDownloads);
-
-    });
- 
-    console.log("Total Sublime TypeScript plugin downloads per day");
-    for (let x of installData) {
-        console.log(x.getDownloadString());
-    }
+    console.log(games);
 });

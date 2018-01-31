@@ -4,8 +4,14 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "type": "npm",
+            "script": "start"
+        },
+        {
+            "label": "Compile ScrapeCats Function",
+            "identifier": "compileScrapeCats",
             "type": "typescript",
-            "tsconfig": "tsconfig.json",
+            "tsconfig": "AzFunctions/ScrapeAvailableCats/tsconfig.json",
             "problemMatcher": [
                 "$tsc"
             ],
@@ -13,6 +19,34 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Run Functions Host",
+            "identifier": "runFunctionsHost",
+            "type": "shell",
+            "command": "cd AzFunctions; func host start",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": [
+                {
+                    "owner": "azureFunctions",
+                    "pattern": [
+                        {
+                            "regexp": "\\b\\B",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "^.*Stopping host.*",
+                        "endsPattern": "^.*Job host started.*"
+                    }
+                }
+            ]
         }
     ]
 }

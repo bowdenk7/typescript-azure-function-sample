@@ -12,6 +12,14 @@
             "cwd": "${workspaceRoot}",
             "outFiles": [],
             "preLaunchTask": "tsc: build - tsconfig.json"
+        },
+        {
+            "name": "Attach to JavaScript Functions",
+            "type": "node",
+            "request": "attach",
+            "port": 5858,
+            "protocol": "inspector",
+            "preLaunchTask": "runFunctionsHost"
         }
     ]
 }

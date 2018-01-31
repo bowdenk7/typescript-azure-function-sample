@@ -4,21 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "start": "npm run build; func host start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "@types/cheerio": "^0.17.31",
     "@types/documentdb": "^1.10.3",
     "@types/mongoose": "^4.7.28",
     "@types/node": "^8.0.53",
     "@types/request": "^0.0.39",
-    "@types/request-promise": "^4.1.39",
+    "@types/request-promise": "^4.1.39"
+  },
+  "dependencies": {
     "cheerio": "^0.22.0",
     "documentdb": "^1.14.1",
-    "moment": "^2.19.2",
     "mongoose": "^4.13.4",
     "request": "^2.79.0",
     "request-promise": "^4.2.2"

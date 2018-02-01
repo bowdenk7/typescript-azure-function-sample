@@ -10,22 +10,25 @@ mongoose.set('debug', true);
 mongoose.connect(mongoUri, { useMongoClient: true });
 
 interface Cat {
-    catId: string,
-    imageUrl?: string,
-    name?: string,
-    breed?: string,
-    age?: string,
-    gender?: string,
-    size?: string,
-    site?: string,
-    location?: string,
-    stage?: string
+    catId: string;
+    created: Date;
+    imageUrls?: string[];
+    name?: string;
+    breed?: string;
+    age?: string;
+    gender?: string;
+    size?: string;
+    site?: string;
+    location?: string;
+    stage?: string;
+    description?: string;
 }
 
 const catSchema = new mongoose.Schema(
     {
         catId: String,
-        imageUrl: String,
+        created: { type: Date, default: Date.now },
+        imageUrls: [String],
         name: String,
         breed: String,
         age: String,
@@ -33,7 +36,8 @@ const catSchema = new mongoose.Schema(
         size: String,
         site: String,
         location: String,
-        stage: String
+        stage: String,
+        description: String
     },
     { collection: 'ToAnalyze' });
 const CatModel = mongoose.model('CatId', catSchema);
@@ -61,9 +65,9 @@ async function saveCats(ids: string[], context) {
         let newCat = {
             catId: id
         };
-        let result = await CatModel.findOneAndUpdate({ catId: id }, newCat, {upsert: true});
-        //let result = await CatModel.update({ catId: id }, newCat, { upsert: true, setDefaultsOnInsert: true });
-        if (!result.imgUrl) {
+
+        let result = await CatModel.findOneAndUpdate({ catId: id }, newCat, {upsert: true, new: true, setDefaultsOnInsert: true});
+        if (result.description) {
             context.log("Fetching cat details for cat: " + result.catId);
             await getAndSaveCatDetails(result.catId, context);
         }
@@ -76,9 +80,17 @@ async function getAndSaveCatDetails(catId: string, context) {
     let body: any = await rp(url);
     let $ = cheerio.load(body);
 
-    let catInfo: Cat = {
+    let images = [$("#imgAnimalPhoto")[0].attribs['src'].split("//")[1]];
+    if ($("#lnkPhoto2")[0] && $("#lnkPhoto2")[0].attribs['href']) {
+        images.push([$("#lnkPhoto2")[0].attribs['href'].split("//")[1]]);
+    }
+    if ($("#lnkPhoto3")[0] && $("#lnkPhoto3")[0].attribs['href']) {
+        images.push([$("#lnkPhoto3")[0].attribs['href'].split("//")[1]]);
+    }
+
+    let catInfo: Partial<Cat> = {
         catId: catId,
-        imageUrl: $("#imgAnimalPhoto")[0].attribs['src'].split("//")[1],
+        imageUrls: images,
         name: $('.detail-animal-name')[0].children[1].children[0].data,
         breed: $('#trBreed')[0].children[3].children[1].children[0].data,
         age: $('#trAge')[0].children[3].children[1].children[0].data,
@@ -86,7 +98,8 @@ async function getAndSaveCatDetails(catId: string, context) {
         size: $('#trSize')[0].children[3].children[1].children[0].data,
         site: $('#trSite')[0].children[3].children[1].children[0].data,
         location: $('#trLocation')[0].children[3].children[1].children[0].data,
-        stage: $('#trStage')[0].children[3].children[1].children[0].data
+        stage: $('#trStage')[0].children[3].children[1].children[0].data,
+        description: $('#lbDescription')[0].children[0] ? $('#lbDescription')[0].children[0].data : ""
     }
 
     let result = await CatModel.findOneAndUpdate({ catId: catId }, catInfo, { upsert: true });

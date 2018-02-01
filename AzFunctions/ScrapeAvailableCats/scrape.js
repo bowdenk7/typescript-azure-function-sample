@@ -17,7 +17,8 @@ mongoose.set('debug', true);
 mongoose.connect(mongoUri, { useMongoClient: true });
 const catSchema = new mongoose.Schema({
     catId: String,
-    imageUrl: String,
+    created: { type: Date, default: Date.now },
+    imageUrls: [String],
     name: String,
     breed: String,
     age: String,
@@ -25,7 +26,8 @@ const catSchema = new mongoose.Schema({
     size: String,
     site: String,
     location: String,
-    stage: String
+    stage: String,
+    description: String
 }, { collection: 'ToAnalyze' });
 const CatModel = mongoose.model('CatId', catSchema);
 function scrapeAvailableCatIds(context) {
@@ -51,9 +53,8 @@ function saveCats(ids, context) {
             let newCat = {
                 catId: id
             };
-            let result = yield CatModel.findOneAndUpdate({ catId: id }, newCat, { upsert: true });
-            //let result = await CatModel.update({ catId: id }, newCat, { upsert: true, setDefaultsOnInsert: true });
-            if (!result.imgUrl) {
+            let result = yield CatModel.findOneAndUpdate({ catId: id }, newCat, { upsert: true, new: true, setDefaultsOnInsert: true });
+            if (!result.description) {
                 context.log("Fetching cat details for cat: " + result.catId);
                 yield getAndSaveCatDetails(result.catId, context);
             }
@@ -66,9 +67,16 @@ function getAndSaveCatDetails(catId, context) {
         context.log("Fetching cat details from from: " + url);
         let body = yield rp(url);
         let $ = cheerio.load(body);
+        let images = [$("#imgAnimalPhoto")[0].attribs['src'].split("//")[1]];
+        if ($("#lnkPhoto2")[0] && $("#lnkPhoto2")[0].attribs['href']) {
+            images.push([$("#lnkPhoto2")[0].attribs['href'].split("//")[1]]);
+        }
+        if ($("#lnkPhoto3")[0] && $("#lnkPhoto3")[0].attribs['href']) {
+            images.push([$("#lnkPhoto3")[0].attribs['href'].split("//")[1]]);
+        }
         let catInfo = {
             catId: catId,
-            imageUrl: $("#imgAnimalPhoto")[0].attribs['src'].split("//")[1],
+            imageUrls: images,
             name: $('.detail-animal-name')[0].children[1].children[0].data,
             breed: $('#trBreed')[0].children[3].children[1].children[0].data,
             age: $('#trAge')[0].children[3].children[1].children[0].data,
@@ -76,7 +84,8 @@ function getAndSaveCatDetails(catId, context) {
             size: $('#trSize')[0].children[3].children[1].children[0].data,
             site: $('#trSite')[0].children[3].children[1].children[0].data,
             location: $('#trLocation')[0].children[3].children[1].children[0].data,
-            stage: $('#trStage')[0].children[3].children[1].children[0].data
+            stage: $('#trStage')[0].children[3].children[1].children[0].data,
+            description: $('#lbDescription')[0].children[0] ? $('#lbDescription')[0].children[0].data : ""
         };
         let result = yield CatModel.findOneAndUpdate({ catId: catId }, catInfo, { upsert: true });
     });

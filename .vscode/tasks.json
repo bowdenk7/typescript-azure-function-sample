@@ -4,8 +4,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "npm",
-            "script": "start"
+            "label": "Build and host",
+            "identifier": "npmstart",
+            "type": "shell",
+            "command": "cd AzFunctions/ScrapeAvailableCats/; npm run start"
         },
         {
             "label": "Compile ScrapeCats Function",

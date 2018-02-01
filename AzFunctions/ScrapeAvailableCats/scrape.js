@@ -14,7 +14,19 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const mongoUri = "mongodb://bowden:bowden@ds046867.mlab.com:46867/catcity";
 mongoose.set('debug', true);
-const catSchema = new mongoose.Schema({ catId: String }, { collection: 'ToAnalyze' });
+mongoose.connect(mongoUri, { useMongoClient: true });
+const catSchema = new mongoose.Schema({
+    catId: String,
+    imageUrl: String,
+    name: String,
+    breed: String,
+    age: String,
+    gender: String,
+    size: String,
+    site: String,
+    location: String,
+    stage: String
+}, { collection: 'ToAnalyze' });
 const CatModel = mongoose.model('CatId', catSchema);
 function scrapeAvailableCatIds(context) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -35,24 +47,38 @@ function scrapeAvailableCatIds(context) {
 exports.scrapeAvailableCatIds = scrapeAvailableCatIds;
 function saveCats(ids, context) {
     return __awaiter(this, void 0, void 0, function* () {
-        mongoose.connect(mongoUri, { useMongoClient: true }, function (err) {
-            if (err) {
-                context.log(err);
-                return;
+        for (let id of ids) {
+            let newCat = {
+                catId: id
+            };
+            let result = yield CatModel.findOneAndUpdate({ catId: id }, newCat, { upsert: true });
+            //let result = await CatModel.update({ catId: id }, newCat, { upsert: true, setDefaultsOnInsert: true });
+            if (!result.imgUrl) {
+                context.log("Fetching cat details for cat: " + result.catId);
+                yield getAndSaveCatDetails(result.catId, context);
             }
-            context.log("Client DB: connected");
-            for (let id of ids) {
-                let newCat = {
-                    catId: id
-                };
-                CatModel.update({ catId: id }, newCat, { upsert: true, setDefaultsOnInsert: true }, (err) => {
-                    if (err) {
-                        context.log(err);
-                    }
-                    context.log('done');
-                });
-            }
-        });
+        }
+    });
+}
+function getAndSaveCatDetails(catId, context) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var url = `http://ws.petango.com/webservices/adoptablesearch/wsAdoptableAnimalDetails.aspx?id=${catId}`;
+        context.log("Fetching cat details from from: " + url);
+        let body = yield rp(url);
+        let $ = cheerio.load(body);
+        let catInfo = {
+            catId: catId,
+            imageUrl: $("#imgAnimalPhoto")[0].attribs['src'].split("//")[1],
+            name: $('.detail-animal-name')[0].children[1].children[0].data,
+            breed: $('#trBreed')[0].children[3].children[1].children[0].data,
+            age: $('#trAge')[0].children[3].children[1].children[0].data,
+            gender: $('#trSex')[0].children[3].children[1].children[0].data,
+            size: $('#trSize')[0].children[3].children[1].children[0].data,
+            site: $('#trSite')[0].children[3].children[1].children[0].data,
+            location: $('#trLocation')[0].children[3].children[1].children[0].data,
+            stage: $('#trStage')[0].children[3].children[1].children[0].data
+        };
+        let result = yield CatModel.findOneAndUpdate({ catId: catId }, catInfo, { upsert: true });
     });
 }
 //# sourceMappingURL=scrape.js.map

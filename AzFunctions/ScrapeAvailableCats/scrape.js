@@ -43,6 +43,8 @@ function scrapeAvailableCatIds(context) {
         context.log("Done scraping ids.");
         context.log(`Saving ${catIds.length} cats to database`);
         yield saveCats(catIds, context);
+        context.log(`Updating available statuses`);
+        yield updateAvailableStatus(catIds);
         context.log("All done.");
     });
 }
@@ -57,6 +59,16 @@ function saveCats(ids, context) {
             if (!result.description) {
                 context.log("Fetching cat details for cat: " + result.catId);
                 yield getAndSaveCatDetails(result.catId, context);
+            }
+        }
+    });
+}
+function updateAvailableStatus(catIds) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const results = yield CatModel.find({ stage: "Available" });
+        for (let cat of results) {
+            if (catIds.indexOf(cat.catId) == -1) {
+                let result = yield CatModel.findOneAndUpdate({ catId: cat.catId }, { stage: "Adopted" });
             }
         }
     });

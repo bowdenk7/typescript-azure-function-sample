@@ -57,6 +57,9 @@ export async function scrapeAvailableCatIds(context) {
 
     context.log(`Saving ${catIds.length} cats to database`);
     await saveCats(catIds, context);
+
+    context.log(`Updating available statuses`);
+    await updateAvailableStatus(catIds);
     context.log("All done.");
 }
 
@@ -67,9 +70,18 @@ async function saveCats(ids: string[], context) {
         };
 
         let result = await CatModel.findOneAndUpdate({ catId: id }, newCat, {upsert: true, new: true, setDefaultsOnInsert: true});
-        if (result.description) {
+        if (!result.description) {
             context.log("Fetching cat details for cat: " + result.catId);
             await getAndSaveCatDetails(result.catId, context);
+        }
+    }
+}
+
+async function updateAvailableStatus(catIds: string[]) {
+    const results: any = await CatModel.find({ stage: "Available" });
+    for (let cat of results) {
+        if (catIds.indexOf(cat.catId) == -1) {
+            let result = await CatModel.findOneAndUpdate({ catId: cat.catId }, {stage: "Adopted"});
         }
     }
 }

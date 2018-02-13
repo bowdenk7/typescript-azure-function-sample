@@ -56,10 +56,8 @@ function saveCats(ids, context) {
                 catId: id
             };
             let result = yield CatModel.findOneAndUpdate({ catId: id }, newCat, { upsert: true, new: true, setDefaultsOnInsert: true });
-            if (!result.description) {
-                context.log("Fetching cat details for cat: " + result.catId);
-                yield getAndSaveCatDetails(result.catId, context);
-            }
+            context.log("Fetching cat details for cat: " + result.catId);
+            yield getAndSaveCatDetails(result.catId, context);
         }
     });
 }

@@ -70,10 +70,8 @@ async function saveCats(ids: string[], context) {
         };
 
         let result = await CatModel.findOneAndUpdate({ catId: id }, newCat, {upsert: true, new: true, setDefaultsOnInsert: true});
-        if (!result.description) {
-            context.log("Fetching cat details for cat: " + result.catId);
-            await getAndSaveCatDetails(result.catId, context);
-        }
+        context.log("Fetching cat details for cat: " + result.catId);
+        await getAndSaveCatDetails(result.catId, context);
     }
 }
 

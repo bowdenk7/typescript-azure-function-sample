@@ -2,10 +2,13 @@ import * as rp from 'request-promise';
 import * as cheerio from 'cheerio';
 import { start } from 'repl';
 import { Model, MongooseDocument } from 'mongoose';
+import * as dotenv from "dotenv";
+
+dotenv.config({ path: ".env" })
 
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-const mongoUri = "mongodb://bowden:bowden@ds046867.mlab.com:46867/catcity";
+const mongoUri = process.env["MONGODB_URI"];
 mongoose.set('debug', true);
 mongoose.connect(mongoUri, { useMongoClient: true });
 

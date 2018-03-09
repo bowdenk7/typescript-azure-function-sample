@@ -1,11 +1,12 @@
 # sublime-typescript-scraper
-This repo contains a script to scrape TypeScript plugin usage data from packageControl.io
+This repo contains an azure function that scrapes cat adoption data off petango.
 
 # Setup
 - Make sure you have Node.js installed
 - `npm install` to grab dependencies
 
 # Run
-- `node scrape.js`
+- `cmd + shift + b` from VS Code to build
+- `F5` to launch local function runtime
 
 Note - This requires an internet connection.

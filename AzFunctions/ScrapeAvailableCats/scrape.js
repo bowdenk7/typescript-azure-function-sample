@@ -10,10 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const rp = require("request-promise");
 const cheerio = require("cheerio");
+const dotenv = require("dotenv");
+;
+dotenv.config({ path: "./.env" });
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-const mongoUri = "mongodb://bowden:bowden@ds046867.mlab.com:46867/catcity";
+const mongoUri = "mongodb://sample:sample@ds012538.mlab.com:12538/catcity-sample";
 mongoose.set('debug', true);
+//console.log("Env var: "+ process.env["MONGODB_URI"]);  couldn't get this to work with local.settings.json
 mongoose.connect(mongoUri, { useMongoClient: true });
 const catSchema = new mongoose.Schema({
     catId: String,

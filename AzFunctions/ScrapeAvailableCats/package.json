@@ -20,6 +20,7 @@
     "@types/request-promise": "^4.1.39"
   },
   "dependencies": {
+    "azure-keyvault": "^3.0.1-preview",
     "cheerio": "^0.22.0",
     "documentdb": "^1.14.1",
     "dotenv": "^5.0.1",

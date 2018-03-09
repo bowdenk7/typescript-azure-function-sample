@@ -3,13 +3,16 @@ import * as cheerio from 'cheerio';
 import { start } from 'repl';
 import { Model, MongooseDocument } from 'mongoose';
 import * as dotenv from "dotenv";
+import * as keyVault from 'azure-keyvault';;
 
-dotenv.config({ path: ".env" })
+
+dotenv.config({ path: "./.env" })
 
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-const mongoUri = process.env["MONGODB_URI"];
+const mongoUri = "mongodb://sample:sample@ds012538.mlab.com:12538/catcity-sample";
 mongoose.set('debug', true);
+//console.log("Env var: "+ process.env["MONGODB_URI"]);  couldn't get this to work with local.settings.json
 mongoose.connect(mongoUri, { useMongoClient: true });
 
 interface Cat {
